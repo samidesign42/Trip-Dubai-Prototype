@@ -71,10 +71,10 @@
 
 <section id="top" data-screen-label="01 Hero" style="position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden">
   <div style="position:absolute;inset:0">
-    <!-- Footage: "Two Vehicles on a Desert Drive" by Alan, pexels.com/video/two-vehicles-on-a-desert-drive-3596456/
-         Pexels License (free commercial use, no attribution required). Slowed and mirrored into a seamless loop. -->
+    <!-- Footage: "People and Vehicles at a Desert", pexels.com/video/people-and-vehicles-at-a-desert-9673122/
+         Pexels License (free commercial use, no attribution required). Downscaled to 1080p, audio stripped. -->
     <div data-hero-poster style="position:absolute;inset:0;background-image:url('./assets/hero-desert-poster.jpg');background-size:cover;background-position:center"></div>
-    <video data-hero-video autoplay muted loop playsinline preload="none" poster="./assets/hero-desert-poster.jpg" aria-hidden="true" tabindex="-1" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block">
+    <video data-hero-video autoplay muted playsinline preload="none" poster="./assets/hero-desert-poster.jpg" aria-hidden="true" tabindex="-1" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block">
       <source src="./assets/hero-desert.mp4" type="video/mp4" />
     </video>
   </div>
@@ -727,8 +727,9 @@ class Component extends DCLogic {
       // The bare muted attribute does not survive the render pass, and Chrome
       // refuses to autoplay anything it considers unmuted.
       v.muted = true;
-      v.loop = true;
-      if (v.paused) { const p = v.play(); if (p) p.catch(() => {}); }
+      // Plays once and rests on its final frame; ended videos report paused,
+      // so they must not be restarted here.
+      if (v.paused && !v.ended) { const p = v.play(); if (p) p.catch(() => {}); }
     });
   }
 
