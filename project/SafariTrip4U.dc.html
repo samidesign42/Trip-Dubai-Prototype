@@ -23,6 +23,8 @@
   [data-reveal] { transition: opacity .9s cubic-bezier(.2,.7,.2,1), transform .9s cubic-bezier(.2,.7,.2,1); }
   [data-reveal].om-hidden { opacity: 0; transform: translateY(30px); }
   ::selection { background: #E8752E; color: #11100E; }
+  @media (prefers-reduced-motion: reduce) { [data-hero-video] { display: none; } }
+  @media (max-width: 640px) { [data-hero-video] { display: none; } }
 </style>
 <script src="./image-slot.js"></script>
 </helmet>
@@ -69,7 +71,12 @@
 
 <section id="top" data-screen-label="01 Hero" style="position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden">
   <div style="position:absolute;inset:0">
-    <image-slot id="st-hero" src="https://images.pexels.com/photos/2417260/pexels-photo-2417260.jpeg?auto=compress&cs=tinysrgb&w=1800" shape="rect" placeholder="HERO — white Land Cruiser cresting a golden dune at sunset, vehicle right of frame, cinematic wide angle, dust trail"></image-slot>
+    <!-- Footage: "Two Vehicles on a Desert Drive" by Alan, pexels.com/video/two-vehicles-on-a-desert-drive-3596456/
+         Pexels License (free commercial use, no attribution required). Slowed and mirrored into a seamless loop. -->
+    <div data-hero-poster style="position:absolute;inset:0;background-image:url('./assets/hero-desert-poster.jpg');background-size:cover;background-position:center"></div>
+    <video data-hero-video autoplay muted loop playsinline preload="none" poster="./assets/hero-desert-poster.jpg" aria-hidden="true" tabindex="-1" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block">
+      <source src="./assets/hero-desert.mp4" type="video/mp4" />
+    </video>
   </div>
   <div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(17,16,14,.72) 0%,rgba(17,16,14,.2) 34%,rgba(17,16,14,.55) 72%,rgba(17,16,14,.94) 100%)"></div>
   <div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(17,16,14,.8) 0%,rgba(17,16,14,.25) 46%,rgba(17,16,14,0) 70%)"></div>
@@ -709,9 +716,24 @@ class Component extends DCLogic {
     this.watch();
     this.mo = new MutationObserver(() => this.watch());
     this.mo.observe(document.body, { childList: true, subtree: true });
+    this.heroTimer = setInterval(() => this.armHeroVideos(), 500);
+    setTimeout(() => { clearInterval(this.heroTimer); this.heroTimer = null; }, 12000);
+  }
+
+  armHeroVideos() {
+    document.querySelectorAll('video[data-hero-video]').forEach(v => {
+      // Hidden by the reduced-motion / small-screen rules: leave it unloaded.
+      if (getComputedStyle(v).display === 'none') return;
+      // The bare muted attribute does not survive the render pass, and Chrome
+      // refuses to autoplay anything it considers unmuted.
+      v.muted = true;
+      v.loop = true;
+      if (v.paused) { const p = v.play(); if (p) p.catch(() => {}); }
+    });
   }
 
   watch() {
+    this.armHeroVideos();
     document.querySelectorAll('[data-reveal]').forEach(el => {
       if (el.dataset.revealSeen) return;
       el.dataset.revealSeen = '1';
@@ -727,6 +749,7 @@ class Component extends DCLogic {
     window.removeEventListener('scroll', this.onScroll);
     if (this.io) this.io.disconnect();
     if (this.mo) this.mo.disconnect();
+    if (this.heroTimer) clearInterval(this.heroTimer);
   }
 
   renderVals() {
