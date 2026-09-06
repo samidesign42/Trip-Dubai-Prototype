@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/SafariTrip4U.dc.html" }
+  ]
+}
